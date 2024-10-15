@@ -2,7 +2,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '../../lib/dbConnect';
-import User from '../../models/User';
+import User from '../../models/test';
 
 interface UserData {
   name: string;
