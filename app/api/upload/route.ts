@@ -18,6 +18,10 @@ export async function POST(req:NextRequest){
     const body = await req.json() as ProductData;
 
     const {name, price, image} = body;
+
+    if(!name || !price || !image){
+        return NextResponse.json({message:"Missing Required field"}, {status:400});
+    }
     
     const product = new Product({
         name, price, image
@@ -31,9 +35,10 @@ export async function POST(req:NextRequest){
     },{status:200});
 
     } catch (error) {
-        console.log(error);
+        console.error("Error saving product:", error);
         return NextResponse.json({
-            message:error
+            message: "Internal server error. Please try again later.",
+            error: error instanceof Error ? error.message : "Unknown error"
         },{status:500});
     }
 };

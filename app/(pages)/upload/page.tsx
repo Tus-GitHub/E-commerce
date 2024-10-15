@@ -1,25 +1,55 @@
 'use client'
-import { ChangeEvent, useState } from "react";
+import { storage } from "@/app/lib/firebase";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { useState } from "react";
 
-interface FormData {
-    name: string;
-    price: number;
-}
 
 export default function Page() {
+    const [name, setName] = useState('');
+    const [price, setPrice] = useState('');
+    const [image, setImage] = useState<File |null>(null);
+    const [message, setMessage] = useState('');
 
-    const[formData, setFormData] = useState<FormData>({
-        name:'',
-        price:0,
-    });
+    const handleUpload = async(e: React.FormEvent<HTMLFormElement>)=>{
+        e.preventDefault();
 
-    const handleChange=(e: ChangeEvent<HTMLInputElement>)=>{
-        const {name, value} = e.target;
-        setFormData({
-            ...formData,
-            [name]:value,
-        });
+        if(!image){
+            setMessage("Please select atleast 2 images.");
+            return;
+        }
+        const fileName = new Date().getTime() + image.name;
+        const imageRef = ref(storage, fileName);
+        try {
+            await uploadBytes(imageRef, image);
+            const imageUrl = await getDownloadURL(imageRef);
+
+            const res = await fetch('/api/upload', {
+                method:'POST',
+                headers:{
+                    'Content-Type':'application/json',
+                },
+                body:JSON.stringify({
+                    name,
+                    price: parseFloat(price),
+                    image: imageUrl,
+                }),
+            });
+            const data = await res.json();
+            if(res.ok){
+                setMessage("Product upload succesfully.");
+            } else{
+                setMessage(data.message || "Error Uplaoding Product.")
+            }
+
+            setName('');
+            setPrice('');
+            setImage(null);
+        } catch (error) {
+            console.error('Error uploading file',error);
+            setMessage("Error uploading Product.");
+        }
     };
+
 
     return (
         <div className="min-h-screen flex p-24 justify-center bg-slate-200">
@@ -27,14 +57,16 @@ export default function Page() {
             <h1 className="tex-2xl font-bold mb-4 text-center">
                 Upload Item
             </h1>
-            <form className="w-full max-w-md">
+            <form onSubmit={handleUpload} className="w-full max-w-md">
                 <div className="flex flex-col mb-4">
                     <label className="block mb-1">Name</label>
                     <input 
                         type="text"
                         name="name"
-                        value={formData.name}
-                        onChange={handleChange}
+                        value={name}
+                        onChange={(e)=>{
+                            setName(e.target.value)
+                        }}
                         required
                         className="border p-2 w-full"
                     />
@@ -42,8 +74,10 @@ export default function Page() {
                     <input 
                         type="number"
                         name="price"
-                        value={formData.price}
-                        onChange={handleChange}
+                        value={price}
+                        onChange={(e)=>{
+                            setPrice(e.target.value)
+                        }}
                         required
                         className="border p-2 w-full"
                     />
@@ -51,11 +85,22 @@ export default function Page() {
                     <input 
                         type="file"
                         className="border p-2 w-full"
+                        required
+                        onChange={(e)=>{
+                            if(e.target.files){
+                                setImage(e.target.files[0]);
+                            }
+                        }}
                     />
                 </div>
-                <button type="submit" className=" bg-blue-500 text-white py-2 px-4 rounded w-full
-                ">Upload</button>
+                <button 
+                type="submit" 
+                className=" bg-blue-500 text-white py-2 px-4 rounded w-full"
+                >
+                Upload
+                </button>
             </form>
+            {message && <p className="mt-2 text-green-500">{message}</p>}
         </div>
         </div>
     );
