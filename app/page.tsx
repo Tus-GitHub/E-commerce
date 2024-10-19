@@ -6,7 +6,7 @@ interface Product {
     name: string;
     price: number;
     image: string;
-    _id:string;
+    _id: string;
 }
 
 interface CartItem {
@@ -14,7 +14,7 @@ interface CartItem {
     price: number;
     quantity: number;
     image: string;
-    _id:string;
+    _id: string;
 }
 
 export default function HomePage() {
@@ -33,8 +33,8 @@ export default function HomePage() {
                 const data = await res.json();
                 setProducts(data.products.slice(0, 10));
             } catch (error) {
-                console.log("Error fetching Products", error);
-                setMessage("Error Fetching products");
+                console.error("Error fetching products", error);
+                setMessage("Error fetching products");
             }
         };
         fetchProducts();
@@ -46,13 +46,13 @@ export default function HomePage() {
             setCart(JSON.parse(cartData));
         }
     }, []);
+
     const addToCart = (product: Product) => {
         setDisable(true);
         const cartData = localStorage.getItem('cart');
         let cartItems: CartItem[] = cartData ? JSON.parse(cartData) : [];
-
         const existingItem = cartItems.find(item => item._id === product._id);
-
+        
         if (existingItem) {
             cartItems = cartItems.map(item =>
                 item._id === product._id
@@ -60,16 +60,16 @@ export default function HomePage() {
                     : item
             );
         } else {
-            cartItems.push({ name: product.name, price: product.price, image: product.image, quantity: 1, _id:product._id });
+            cartItems.push({ name: product.name, price: product.price, image: product.image, quantity: 1, _id: product._id });
         }
         localStorage.setItem('cart', JSON.stringify(cartItems));
         setCart(cartItems);
         setDisable(false);
     };
 
-    const increaseQuantity = (image: string) => {
+    const increaseQuantity = (_id: string) => {
         const updatedCart = cart.map(item =>
-            item.image === image
+            item._id === _id
                 ? { ...item, quantity: item.quantity + 1 }
                 : item
         );
@@ -77,17 +77,16 @@ export default function HomePage() {
         localStorage.setItem('cart', JSON.stringify(updatedCart));
     };
 
-    const decreaseQuantity = (image: string) => {
+    const decreaseQuantity = (_id: string) => {
         const updatedCart = cart
             .map(item => {
-                if (item.image === image) {
+                if (item._id === _id) {
                     const newQuantity = item.quantity - 1;
                     return { ...item, quantity: newQuantity > 0 ? newQuantity : 1 };
                 }
                 return item;
             })
             .filter(item => item.quantity > 0);
-
         setCart(updatedCart);
         localStorage.setItem('cart', JSON.stringify(updatedCart));
     };
@@ -97,63 +96,53 @@ export default function HomePage() {
     };
 
     return (
-        <div className="min-h-screen flex bg-slate-200 p-4">
-
-            <div className="w-2/3 pr-6">
-                <h2 className="text-3xl font-bold mb-8 text-center">Available Products</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="flex flex-col lg:flex-row h-screen w-full bg-blue-50"> {/* Changed background color */}
+            <div className="flex-1 mb-12 lg:mb-0 p-6 overflow-auto">
+                <h2 className="text-4xl font-bold mb-4 text-blue-600 text-center">Available Products</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {products.length > 0 ? (
-                        products.map((product, index) => (
-                            <div key={index} className="flex flex-col text-center bg-white p-4 border rounded-lg">
-                                <img
-                                    src={product.image}
-                                    alt={product.name}
-                                    className="h-24 mb-4 w-ful object-contain"
-                                />
-                                <h3 className="text-xl font-bold mb-2 uppercase">{product.name}</h3>
-                                <p className="text-gray-700 mb-4">Rs.{product.price}</p>
+                        products.map((product) => (
+                            <div key={product._id} className="border border-blue-200 rounded-lg shadow-lg p-3 transition-transform transform hover:scale-105 bg-white"> {/* Adjusted border color */}
+                                <img src={product.image} alt={product.name} className="h-36 object-contain mb-4 rounded-lg transition-transform duration-300 hover:scale-110" />
+                                <h3 className="text-xl font-semibold text-blue-700">{product.name}</h3>
+                                <p className="text-gray-700 mb-2">Rs.{product.price.toFixed(2)}</p>
                                 <button
                                     disabled={disable}
                                     onClick={() => addToCart(product)}
-                                    className="bg-red-400 text-white text-center disabled:opacity-80 mb-4 mx-auto p-2 border rounded-lg hover:shadow-lg uppercase"
+                                    className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-800 transition duration-300 disabled:bg-gray-400" // Changed button color
                                 >
                                     Add to Cart
                                 </button>
                             </div>
                         ))
                     ) : (
-                        <p className="text-center text-3xl text-red-800">{message || 'No Products available'}</p>
+                        <p className="text-red-500 text-center">{message || 'No products available'}</p>
                     )}
                 </div>
             </div>
-
-            {/* Cart Section */}
-            <div className="w-80 h-[calc(100%-4rem)] bg-white p-6 rounded-lg shadow-lg fixed right-0  overflow-auto">
-                <h2 className="text-3xl font-bold mb-6 text-center">Your Cart</h2>
+            <div className="hidden lg:block lg:w-px bg-gray-300 mx-6"></div>
+            <div className="lg:w-1/4 lg:pl-4 p-6 overflow-auto">
+                <h2 className="text-4xl font-bold mb-4 text-blue-600">Your Cart</h2>
                 {cart.length > 0 ? (
                     <>
-                        {cart.map((item, index) => (
-                            <div key={index} className="flex justify-between items-center p-2 border-b mb-4 bg-white rounded-lg">
-                                <img
-                                    src={item.image}
-                                    alt={item.name}
-                                    className="w-28 h-28 object-cover mr-4"
-                                />
-                                <div className="flex-1 ml-4">
-                                    <p className="mb-6 text-xl">{item.name}</p>
-                                    <p className="mb-1">Rs.{item.price}</p>
-                                    <div className="flex items-center">
+                        {cart.map((item) => (
+                            <div key={item._id} className="flex items-center border-b py-4 bg-white shadow-sm rounded mb-2">
+                                <img src={item.image} alt={item.name} className="w-20 h-20 object-contain rounded mr-4" />
+                                <div className="flex-1">
+                                    <p className="text-lg font-semibold text-gray-800">{item.name}</p>
+                                    <p className="text-gray-700">Rs.{item.price.toFixed(2)}</p>
+                                    <div className="flex items-center mt-2">
                                         <button
                                             onClick={() => decreaseQuantity(item._id)}
-                                            className="bg-red-500 text-white px-2 rounded"
                                             disabled={item.quantity <= 1}
+                                            className="bg-gray-300 text-gray-700 py-1 px-3 rounded hover:bg-gray-400 disabled:bg-gray-200 transition duration-200"
                                         >
                                             -
                                         </button>
-                                        <span className="mx-2">{item.quantity}</span>
+                                        <span className="mx-4 text-lg">{item.quantity}</span>
                                         <button
                                             onClick={() => increaseQuantity(item._id)}
-                                            className="bg-blue-500 text-white px-2 rounded"
+                                            className="bg-gray-300 text-gray-700 py-1 px-3 rounded hover:bg-gray-400 transition duration-200"
                                         >
                                             +
                                         </button>
@@ -161,9 +150,9 @@ export default function HomePage() {
                                 </div>
                             </div>
                         ))}
-                        <div className="flex justify-between font-bold mt-4">
-                            <span>Total Amount</span>
-                            <span>Rs.{calculateTotal()}</span>
+                        <div className="flex justify-between items-center font-bold text-lg mt-6">
+                            <span>Total Amount:</span>
+                            <span>Rs.{calculateTotal().toFixed(2)}</span>
                         </div>
                     </>
                 ) : (
