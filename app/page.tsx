@@ -82,7 +82,7 @@ export default function HomePage() {
             .map(item => {
                 if (item._id === _id) {
                     const newQuantity = item.quantity - 1;
-                    return { ...item, quantity: newQuantity > 0 ? newQuantity : 1 };
+                    return { ...item, quantity: newQuantity > 0 ? newQuantity : 0 };
                 }
                 return item;
             })
@@ -134,7 +134,6 @@ export default function HomePage() {
                                     <div className="flex items-center mt-2">
                                         <button
                                             onClick={() => decreaseQuantity(item._id)}
-                                            disabled={item.quantity <= 1}
                                             className="bg-gray-300 text-gray-700 py-1 px-3 rounded hover:bg-gray-400 disabled:bg-gray-200 transition duration-200"
                                         >
                                             -
