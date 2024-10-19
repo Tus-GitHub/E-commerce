@@ -6,6 +6,7 @@ interface Product{
     name: string;
     price: number;
     image: string;
+    _id:string;
 }
 
 interface CartItem{
@@ -13,6 +14,7 @@ interface CartItem{
     price: number;
     quantity:number;
     image: string;
+    _id:string;
 }
 
 export default function Page() {
@@ -42,16 +44,16 @@ export default function Page() {
         const cartData = localStorage.getItem('cart');
         let cart: CartItem[] = cartData ? JSON.parse(cartData) : [];
 
-        const existingItem = cart.find(item=> item.name === product.name);
+        const existingItem = cart.find(item=> item._id === product._id);
 
         if(existingItem){
             cart = cart.map(item => 
-                item.name === product.name 
+                item._id === product._id 
                 ? {...item , quantity: item.quantity + 1}
                 : item
             )
         } else {
-            cart.push({name: product.name, price: product.price, image: product.image, quantity: 1});
+            cart.push({name: product.name, price: product.price, image: product.image, quantity: 1, _id:product._id});
         }
         localStorage.setItem('cart', JSON.stringify(cart));
         setDisable(false);

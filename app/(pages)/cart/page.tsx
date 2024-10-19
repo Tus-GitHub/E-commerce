@@ -7,6 +7,7 @@ interface CartItem {
     price: number;
     quantity: number;
     image: string;
+    _id:string;
 }
 
 export default function Page() {
@@ -19,9 +20,9 @@ export default function Page() {
         } 
     }, []);
 
-    const increaseQuantity = (name:string) => {
+    const increaseQuantity = (_id:string) => {
         const updatedCart = cart.map(item => 
-            item.name === name
+            item._id === _id
             ? {...item, quantity: item.quantity + 1}
             : item
         );
@@ -29,9 +30,9 @@ export default function Page() {
         localStorage.setItem('cart', JSON.stringify(updatedCart));
     }
 
-    const decreaseQuantity = (name:string) => {
+    const decreaseQuantity = (_id:string) => {
         const updatedCart = cart.map(item => {
-            if(item.name === name){
+            if(item._id === _id){
                 const newQuantity = item.quantity - 1;
                 return {...item, quantity: newQuantity > 0 ?  newQuantity : 0 }; 
             }
@@ -63,7 +64,7 @@ export default function Page() {
                                     <p className="mb-1 ">RS.{item.price}</p>
                                     <div className="flex items-center">
                                         <button
-                                        onClick={()=> decreaseQuantity(item.name)}
+                                        onClick={()=> decreaseQuantity(item._id)}
                                         className="bg-red-500 text-white px-2 rounded"
                                         disabled ={item.quantity <= 0}
                                         >
@@ -71,7 +72,7 @@ export default function Page() {
                                         </button>
                                         <span className="mx-2">{item.quantity}</span>
                                         <button
-                                        onClick={()=> increaseQuantity(item.name)}
+                                        onClick={()=> increaseQuantity(item._id)}
                                         className="bg-blue-500 text-white px-2 rounded"
                                         >
                                             +
