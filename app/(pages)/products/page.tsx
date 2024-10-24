@@ -25,7 +25,7 @@ export default function Page() {
     useEffect(()=>{
         const fetchProducts = async ()=>{
             try{
-                const res = await fetch('/api/products');
+                const res = await fetch('https://e-commerce-ajr6.onrender.com/api/products');
                 if (!res.ok) {
                     throw new Error('Failed to fetch products');
                   }
