@@ -1,44 +1,62 @@
-'use server'
-
-import dbConnect from "@/app/lib/dbConnect"
+import dbConnect from "@/app/lib/dbConnect";
 import Product from "@/app/models/Product";
 import { NextRequest, NextResponse } from "next/server";
 
-interface ProductData{
-    name:string;
-    price:number;
-    image:string;
+interface ProductData {
+    name: string;
+    price: number;
+    image: string;
 }
 
-export async function POST(req:NextRequest){
+export async function POST(req: NextRequest) {
     await dbConnect();
 
-    try{
+    try {
+        const body = await req.json() as ProductData;
+        const { name, price, image } = body;
 
-    const body = await req.json() as ProductData;
+        if (!name || !price || !image) {
+            return NextResponse.json(
+                { message: "Missing Required field" },
+                {
+                    status: 400,
+                    headers: {
+                        'Access-Control-Allow-Origin': '*',
+                    },
+                }
+            );
+        }
 
-    const {name, price, image} = body;
+        const product = new Product({ name, price, image });
+        await product.save();
 
-    if(!name || !price || !image){
-        return NextResponse.json({message:"Missing Required field"}, {status:400});
-    }
-    
-    const product = new Product({
-        name, price, image
-    });
-
-    await product.save();
-
-    return NextResponse.json({
-        message:"Product uploaded!",
-        data:product
-    },{status:200});
-
+        return NextResponse.json(
+            {
+                message: "Product uploaded!",
+                data: product,
+            },
+            {
+                status: 200,
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+                    'Access-Control-Allow-Headers': 'Content-Type',
+                },
+            }
+        );
     } catch (error) {
         console.error("Error saving product:", error);
-        return NextResponse.json({
-            message: "Internal server error. Please try again later.",
-            error: error instanceof Error ? error.message : "Unknown error"
-        },{status:500});
+        return NextResponse.json(
+            {
+                message: "Internal server error. Please try again later.",
+                error: error instanceof Error ? error.message : "Unknown error",
+            },
+            {
+                status: 500,
+                headers: {
+                    'Access-Control-Allow-Origin': '*', 
+                },
+            }
+        );
     }
-};
+}
