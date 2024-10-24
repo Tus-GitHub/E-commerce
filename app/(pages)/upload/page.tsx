@@ -23,7 +23,7 @@ export default function Page() {
             await uploadBytes(imageRef, image);
             const imageUrl = await getDownloadURL(imageRef);
 
-            const res = await fetch('https://e-commerce-ajr6.onrender.com/api/upload', {
+            const res = await fetch('/api/upload', {
                 method:'POST',
                 headers:{
                     'Content-Type':'application/json',
